@@ -18,7 +18,7 @@ logging.basicConfig(
     style="{",
     datefmt="%Y-%m-%d-%H:%M:%S",
 )
-ERROR_TEXT = "\nUnhandled exception occurred. Please report here: https://github.com/mzivic7/spacebar-bridge/issues"
+ERROR_TEXT = "\nUnhandled exception occurred. Please report here: https://github.com/sparklost/spacebar-bridge/issues"
 
 
 def get_author_name(message):
@@ -60,7 +60,6 @@ class Bridge:
         self.cdn_b = config["spacebar"]["cdn_host"]
         token_b = config["spacebar"]["token"]
         bridges = config["bridges"]
-        self.message_config = config["format"]
         self.channels = []   # should be loaded from gateway when guild_create event is parsed
         self.roles = []   # this too
 
@@ -194,7 +193,6 @@ class Bridge:
                                 reply_ping = True
                             message_text = formatter.build_message(
                                 data,
-                                self.message_config,
                                 self.roles,
                                 self.channels,
                             )
@@ -226,7 +224,7 @@ class Bridge:
                                 if channel_pair in self.bridges_a_txt:
                                     self.database_a.add_pair(channel_pair, source_message, target_message)
                                 else:
-                                    logger.warn(f"Channel pair (A): {channel_pair} not initialized")
+                                    logger.warning(f"Channel pair (A): {channel_pair} not initialized")
 
                         elif op == "MESSAGE_UPDATE":
                             source_channel = data["channel_id"]
@@ -240,7 +238,6 @@ class Bridge:
                                     author_pfp = get_author_pfp(data, self.cdn_a)
                                     message_text = formatter.build_message(
                                         data,
-                                        self.message_config,
                                         self.roles,
                                         self.channels,
                                     )
@@ -263,7 +260,7 @@ class Bridge:
                                     )
                                     logger.debug(f"EDIT (A): = {source_channel} > {target_channel} = [{author_name}] - ({source_message}) - {message_text}")
                             else:
-                                logger.warn(f"Channel pair (A): {channel_pair} not initialized")
+                                logger.warning(f"Channel pair (A): {channel_pair} not initialized")
 
                         elif op == "MESSAGE_DELETE":
                             source_channel = data["channel_id"]
@@ -277,12 +274,17 @@ class Bridge:
                                     logger.debug(f"DELETE (A): = {source_channel} > {target_channel} = ({source_message})")
                                     self.database_a.delete_pair(channel_pair, source_message)
                             else:
-                                logger.warn(f"Channel pair (A): {channel_pair} not initialized")
+                                logger.warning(f"Channel pair (A): {channel_pair} not initialized")
 
                         elif op == "MESSAGE_REACTION_ADD":
+                            # A receives reaction_add
+                            # B reacts to itself if not already
                             pass
 
                         elif op == "MESSAGE_REACTION_REMOVE":
+                            # A receives reaction_delete
+                            # check if this is last non-self reaction
+                            #     B removes self reaction
                             pass
 
                 else:
@@ -336,7 +338,6 @@ class Bridge:
                             # build message
                             message_text = formatter.build_message(
                                 data,
-                                self.message_config,
                                 self.roles,
                                 self.channels,
                             )
@@ -368,7 +369,7 @@ class Bridge:
                                 if channel_pair in self.bridges_b_txt:
                                     self.database_b.add_pair(channel_pair, source_message, target_message)
                                 else:
-                                    logger.warn(f"Channel pair (B): {channel_pair} not initialized")
+                                    logger.warning(f"Channel pair (B): {channel_pair} not initialized")
 
                         elif op == "MESSAGE_UPDATE":
                             source_channel = data["channel_id"]
@@ -382,7 +383,6 @@ class Bridge:
                                     author_pfp = get_author_pfp(data, self.cdn_b)
                                     message_text = formatter.build_message(
                                         data,
-                                        self.message_config,
                                         self.roles,
                                         self.channels,
                                     )
@@ -405,7 +405,7 @@ class Bridge:
                                     )
                                     logger.debug(f"EDIT (B): = {source_channel}-{source_message} > {target_channel}={target_message} = [{author_name}] - {message_text}")
                             else:
-                                logger.warn(f"Channel pair (B): {channel_pair} not initialized")
+                                logger.warning(f"Channel pair (B): {channel_pair} not initialized")
 
                         elif op == "MESSAGE_DELETE":
                             source_channel = data["channel_id"]
@@ -419,7 +419,7 @@ class Bridge:
                                     logger.debug(f"DELETE (B): = {source_channel} > {target_channel} = ({source_message})")
                                     self.database_b.delete_pair(channel_pair, source_message)
                             else:
-                                logger.warn(f"Channel pair (B): {channel_pair} not initialized")
+                                logger.warning(f"Channel pair (B): {channel_pair} not initialized")
 
                         elif op == "MESSAGE_REACTION_ADD":
                             pass

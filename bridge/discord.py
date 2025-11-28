@@ -19,7 +19,7 @@ class Discord():
     """Methods for fetching and sending data to Discord using REST API"""
 
     def __init__(self, token, host, cdn, name):
-        host_obj = urllib.parse.urlparse(host)
+        host_obj = urllib.parse.urlsplit(host)
         if host_obj.netloc:
             self.host = host_obj.netloc
         else:

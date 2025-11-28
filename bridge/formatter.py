@@ -134,19 +134,12 @@ def format_poll(poll):
     return content.strip("\n")
 
 
-def build_message(message, config, roles, channels):
+def build_message(message, roles, channels):
     """Build message object into text"""
-    format_interaction = config["format_interaction"]
-    format_one_reaction = config["format_one_reaction"]
-    reactions_separator = config["reactions_separator"]
     content = ""
 
     if message["interaction"]:
-        content = (
-            format_interaction
-            .replace("%username", message["interaction"]["username"])
-            .replace("%command", message["interaction"]["command"])
-        )
+        content = f"╭──⤙ {message["interaction"]["username"]} used [{message["interaction"]["command"]}]"
 
     if "poll" in message:
         message["content"] = format_poll(message["poll"])
@@ -184,22 +177,5 @@ def build_message(message, config, roles, channels):
             content += f"(lottie sticker: {sticker["name"]})"
         else:
             content += f"[(gif sticker)]({sticker["name"]})"
-
-    # reactions
-    if message["reactions"]:
-        reactions = []
-        for reaction in message["reactions"]:
-            emoji_str = reaction["emoji"]
-            my_reaction = ""
-            if reaction["me"]:
-                my_reaction = "*"
-            reactions.append(
-                format_one_reaction
-                .replace("%reaction", emoji_str)
-                .replace("%count", f"{my_reaction}{reaction["count"]}"),
-            )
-        if content:
-            content += "\n"
-        content += reactions_separator.join(reactions)
 
     return content

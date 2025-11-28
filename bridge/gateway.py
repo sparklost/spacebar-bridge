@@ -47,7 +47,7 @@ class Gateway():
 
     def __init__(self, token, host, name, compressed=True):
         if host:
-            host_obj = urllib.parse.urlparse(host)
+            host_obj = urllib.parse.urlsplit(host)
             if host_obj.netloc:
                 self.host = host_obj.netloc
             else:
@@ -117,7 +117,7 @@ class Gateway():
             connection.request("GET", "/api/v9/gateway")
         except (socket.gaierror, TimeoutError):
             connection.close()
-            logger.warn(f"({self.name}) No internet connection. Exiting...")
+            logger.warning(f"({self.name}) No internet connection. Exiting...")
             raise SystemExit("No internet connection. Exiting...")
         response = connection.getresponse()
         if response.status == 200:
@@ -185,7 +185,7 @@ class Gateway():
                     break
                 code = struct.unpack("!H", data[0:2])[0]
                 reason = data[2:].decode("utf-8", "replace")
-                logger.warn(f"({self.name}) Gateway error code: {code}, reason: {reason}")
+                logger.warning(f"({self.name}) Gateway error code: {code}, reason: {reason}")
                 self.resumable = code in (4000, 4009)
                 if code == 4004:
                     self.run = False
@@ -205,7 +205,7 @@ class Gateway():
                     response = None
                     opcode = None
             except Exception as e:
-                logger.warn(f"({self.name}) Receiver error: {e}")
+                logger.warning(f"({self.name}) Receiver error: {e}")
                 self.resumable = True
                 break
             logger.debug(f"({self.name}) Received: opcode={opcode}, optext={response["t"] if (response and "t" in response and response["t"] and "LIST" not in response["t"]) else 'None'}")
@@ -363,7 +363,7 @@ class Gateway():
                 heartbeat_sent_time = int(time.time())
                 logger.debug(f"({self.name}) Sent heartbeat")
                 if not self.heartbeat_received:
-                    logger.warn(f"({self.name}) Heartbeat reply not received")
+                    logger.warning(f"({self.name}) Heartbeat reply not received")
                     self.resumable = True
                     break
                 self.heartbeat_received = False
@@ -460,7 +460,7 @@ class Gateway():
             logger.info(f"({self.name}) Connection established")
         except websocket._exceptions.WebSocketAddressException:
             if not self.wait:   # if not running from wait_oline
-                logger.warn(f"({self.name}) No internet connection")
+                logger.warning(f"({self.name}) No internet connection")
                 self.ws.close()
                 threading.Thread(target=self.wait_online, daemon=True, args=()).start()
 
